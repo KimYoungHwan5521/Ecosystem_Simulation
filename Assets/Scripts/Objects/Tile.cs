@@ -7,13 +7,13 @@ public class Tile : CustomObject
 {
     public Ground ground;
     public Vector2Int gridPosition;
-    public int nutrient;
+    public float nutrient;
     public TextMeshProUGUI nutrientText;
     public Grass grass;
     
     protected override void MyUpdate(float deltaTime)
     {
-        nutrientText.text = $"{nutrient}";
+        nutrientText.text = $"{(int)nutrient}";
         nutrientText.gameObject.SetActive(Toolbar.bShowNutrient);
     }
 

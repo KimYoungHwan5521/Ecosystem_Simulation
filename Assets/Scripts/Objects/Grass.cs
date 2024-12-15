@@ -9,8 +9,8 @@ public class Grass : CustomObject
     public Tile tile;
 
     int growthLevel;
-    [SerializeField]int needGrowNutrient;
-    int leftNutrient;
+    [SerializeField]float needGrowNutrient;
+    float curNutrient;
     [SerializeField]float growthTime;
     [SerializeField]float curGrowthTime;
 
@@ -22,33 +22,29 @@ public class Grass : CustomObject
 
     protected override void MyUpdate(float deltaTime)
     {
-        if(curGrowthTime > growthTime)
+        if(tile.nutrient > deltaTime)
         {
             if(growthLevel < 3)
             {
-                Grow();
+                Grow(deltaTime);
             }
             else
             {
                 Propagate();
             }
-            curGrowthTime = 0;
+            
         }
-        curGrowthTime += deltaTime;
     }
 
-    public void Grow() 
+    public void Grow(float deltaTime) 
     {
-        if(tile.nutrient >= needGrowNutrient)
+        tile.nutrient -= deltaTime;
+        curNutrient += deltaTime;
+        if(curNutrient > needGrowNutrient)
         {
-            tile.nutrient -= needGrowNutrient;
             growthLevel++;
+            curNutrient = 0;
             SpriteUpdate();
-        }
-        else if(tile.nutrient > 0)
-        {
-            leftNutrient += tile.nutrient;
-            tile.nutrient = 0;
         }
     }
     public void Propagate()
