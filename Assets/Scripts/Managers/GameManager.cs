@@ -34,5 +34,8 @@ public class GameManager : MonoBehaviour
 
         GroundUpdate?.Invoke(Time.deltaTime);
         ObjectUpdate?.Invoke(Time.deltaTime);
+
+        ObjectDestroy?.Invoke();
+        ObjectDestroy = null;
     }
 }

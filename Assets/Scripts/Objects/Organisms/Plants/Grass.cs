@@ -2,22 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Grass : CustomObject
+public class Grass : Organisms
 {
     SpriteRenderer spriteRenderer;
+    Collider2D col;
     public Sprite[] grassSprites;
     public Tile tile;
 
     int growthLevel;
+    public int GrowthLevel => growthLevel;
     [SerializeField]float needGrowNutrient;
-    float curNutrient;
-    [SerializeField]float growthTime;
-    [SerializeField]float curGrowthTime;
 
     protected override void Start()
     {
         base.Start();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        col = GetComponentInChildren<Collider2D>();
+        col.enabled = false;
+
+        bioTag = "Grass";
     }
 
     protected override void MyUpdate(float deltaTime)
@@ -39,11 +42,11 @@ public class Grass : CustomObject
     public void Grow(float deltaTime) 
     {
         tile.nutrient -= deltaTime;
-        curNutrient += deltaTime;
-        if(curNutrient > needGrowNutrient)
+        nutrient += deltaTime;
+        if(nutrient > needGrowNutrient)
         {
             growthLevel++;
-            curNutrient = 0;
+            nutrient = 0;
             SpriteUpdate();
         }
     }
@@ -70,5 +73,6 @@ public class Grass : CustomObject
     void SpriteUpdate()
     {
         spriteRenderer.sprite = grassSprites[growthLevel];
+        col.enabled = growthLevel > 0;
     }
 }

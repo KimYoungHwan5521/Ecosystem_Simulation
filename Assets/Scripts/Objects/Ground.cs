@@ -23,11 +23,11 @@ public class Ground : MonoBehaviour
                     Quaternion.identity).GetComponent<Tile>();
                 tiles[i,j].ground = this;
                 tiles[i, j].gridPosition = new Vector2Int(i, j);
-                tiles[i,j].nutrient = Random.Range(0, 100);
+                tiles[i,j].nutrient = Random.Range(0, 1000);
             }
         }
 
-        tiles[Random.Range(0, tiles.GetLength(0)), Random.Range(0, tiles.GetLength(1))].Plant();
+        for(int i=0; i<10; i++) tiles[Random.Range(0, tiles.GetLength(0)), Random.Range(0, tiles.GetLength(1))].Plant();
     }
 
 }

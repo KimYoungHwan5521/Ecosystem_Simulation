@@ -9,5 +9,5 @@ public class Toolbar : MonoBehaviour
 
     public Toggle showNutrient;
 
-    public void toggleShowNutrient() { bShowNutrient = !bShowNutrient; }
+    public void ToggleShowNutrient() { bShowNutrient = !bShowNutrient; }
 }
