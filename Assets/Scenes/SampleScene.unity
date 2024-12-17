@@ -1172,13 +1172,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88541ea0a850d02479b066a46da74329, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bioTag: 
-  nutrient: 100
+  nutrients: 0
   currentAction: 0
+  diet: 0
   targetPrey: {fileID: 0}
+  hunger: 0
+  sleepiness: 0
   lifespan: 180
   detectionRange: 3
   moveSpeed: 10
+  chewTime: 5
+  digestionTime: 30
+  digestibility: 0.8
   moveDirection: {x: 1, y: 0}
 --- !u!212 &2102569726
 SpriteRenderer:

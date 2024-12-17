@@ -9,9 +9,10 @@ public class Grass : Organisms
     public Sprite[] grassSprites;
     public Tile tile;
 
-    int growthLevel;
+    [SerializeField]int growthLevel;
     public int GrowthLevel => growthLevel;
-    [SerializeField]float needGrowNutrient;
+    [SerializeField]float needGrowNutrients;
+    public float ABiteOfNutrients => needGrowNutrients;
 
     protected override void Start()
     {
@@ -20,7 +21,7 @@ public class Grass : Organisms
         col = GetComponentInChildren<Collider2D>();
         col.enabled = false;
 
-        bioTag = "Grass";
+        //bioTag = "Grass";
     }
 
     protected override void MyUpdate(float deltaTime)
@@ -42,11 +43,11 @@ public class Grass : Organisms
     public void Grow(float deltaTime) 
     {
         tile.nutrient -= deltaTime;
-        nutrient += deltaTime;
-        if(nutrient > needGrowNutrient)
+        nutrients += deltaTime;
+        if(nutrients > needGrowNutrients)
         {
             growthLevel++;
-            nutrient = 0;
+            nutrients = 0;
             SpriteUpdate();
         }
     }
@@ -68,6 +69,16 @@ public class Grass : Organisms
         {
             tile.ground.tiles[tile.gridPosition.x, tile.gridPosition.y + 1].Plant();
         }
+    }
+
+    public override float GetEaten(Organisms eater)
+    {
+        float eatAmount;
+        eatAmount = needGrowNutrients;
+        nutrients -= eatAmount;
+        growthLevel--;
+        SpriteUpdate();
+        return eatAmount;
     }
 
     void SpriteUpdate()

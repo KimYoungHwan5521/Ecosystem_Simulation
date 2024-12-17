@@ -2,36 +2,48 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum AnimalAction { Rest, FindPrey, Eat, Sleep, RunAway, Mating, Defecate }
+public enum AnimalAction { Resting, FindingPrey, Eating, Sleeping, RunAway, Mating, Hunting }
+public enum Diet { Herbivore, Carnivore, Omnivore }
 
 public class Animal : Organisms
 {
-    [SerializeField]protected AnimalAction currentAction;
-    protected List<string> edibles;
-    protected List<string> threats;
+    [SerializeField] protected AnimalAction currentAction;
+    [SerializeField] protected Diet diet;
     [SerializeField]protected GameObject targetPrey;
 
-    protected float hunger;
-    protected float sleepiness;
     protected bool isAdult;
     protected bool isPregnent;
     protected bool isMenopause;
     protected bool isDead;
 
+    [SerializeField] protected float hunger;
+    [SerializeField] protected float sleepiness;
     [SerializeField] protected float lifespan;
     protected float age;
     protected float corruptionRate;
     [SerializeField] protected float detectionRange;
     [SerializeField] protected float moveSpeed;
-    protected float intake;
+
+    protected float inMouthNutrients;
+    [SerializeField] protected float chewTime;
+    protected float curChewTime;
+
+    protected Queue<float> digestionQueue;
+    protected float digestingNutrients;
+    [SerializeField] protected float digestionTime;
+    protected float curDigestionTime;
+    [SerializeField] protected float digestibility = 0.8f;
 
     [SerializeField]Vector2 moveDirection = Vector2.right;
 
+    protected override void Start()
+    {
+        base.Start();
+        digestionQueue = new Queue<float>();
+    }
+
     protected override void MyStart()
     {
-        edibles = new List<string>();
-        threats = new List<string>();
-
         transform.localScale = Vector3.one * 0.5f;
     }
 
@@ -41,6 +53,7 @@ public class Animal : Organisms
         {
             Aging(deltaTime);
             AIAction(deltaTime);
+            Digest(deltaTime);
             Move(moveDirection, deltaTime);
         }
         else
@@ -93,22 +106,31 @@ public class Animal : Organisms
         if(targetPrey == null) FindPrey();
         else
         {
-            if (Vector2.Distance(targetPrey.transform.position, transform.position) < 0.1f) moveDirection = Vector2.zero;
-            else moveDirection = targetPrey.transform.position - transform.position;
+            if (Vector2.Distance(targetPrey.transform.position, transform.position) < 0.1f || inMouthNutrients > 0)
+            {
+                moveDirection = Vector2.zero;
+                Eat(targetPrey.GetComponent<Organisms>(), deltaTime);
+            }
+            else
+            {
+                currentAction = AnimalAction.FindingPrey;
+                moveDirection = targetPrey.transform.position - transform.position;
+            }
         }
     }
 
     protected void FindPrey()
     {
+        currentAction = AnimalAction.FindingPrey;
         RaycastHit2D[] hits;
         hits = Physics2D.CircleCastAll(transform.position, detectionRange, Vector2.right);
         foreach(RaycastHit2D hit in hits)
         {
             if(hit.collider.TryGetComponent(out Organisms detected))
             {
-                if(edibles.Contains(detected.bioTag))
+                if((diet == Diet.Herbivore || diet == Diet.Omnivore) && detected.TryGetComponent(out Grass grass) && grass.GrowthLevel > 0)
                 {
-                    targetPrey = detected.gameObject;
+                    targetPrey = grass.gameObject;
                     return;
                 }
             }
@@ -126,6 +148,65 @@ public class Animal : Organisms
                 }
                 else
                     moveDirection = moveDirection.Rotate(135);
+            }
+        }
+    }
+
+    protected void Eat(Organisms prey, float deltaTime)
+    {
+        currentAction = AnimalAction.Eating;
+        if(targetPrey.TryGetComponent(out Grass grass))
+        {
+            Graze(grass, deltaTime);
+        }
+        else
+        {
+
+        }
+    }
+
+    protected void Graze(Grass grass, float deltaTime)
+    {
+        if(inMouthNutrients == 0)
+        {
+            inMouthNutrients = grass.GetEaten(this);
+            if (grass.GrowthLevel < 1) targetPrey = null;
+        }
+        else
+        {
+            curChewTime += deltaTime;
+            if(curChewTime > chewTime)
+            {
+                curChewTime = 0;
+                digestionQueue.Enqueue(inMouthNutrients);
+                inMouthNutrients = 0;
+            }
+        }
+    }
+
+    void Digest(float deltaTime)
+    {
+        if(digestingNutrients == 0)
+        {
+            if (digestionQueue.Count == 0) return;
+            digestingNutrients = digestionQueue.Dequeue();
+        }
+        else
+        {
+            curDigestionTime += deltaTime;
+            if(curDigestionTime > digestionTime)
+            {
+                curDigestionTime = 0;
+                nutrients += digestingNutrients * digestibility;
+                // Poop
+                RaycastHit2D hit;
+                int layerMask = LayerMask.GetMask("Tile");
+                hit = Physics2D.Raycast(transform.position, Vector2.right, 1, layerMask);
+                if(hit.collider.TryGetComponent(out Tile tile))
+                {
+                    tile.nutrient += digestingNutrients * (1 - digestibility);
+                }
+                digestingNutrients = 0;
             }
         }
     }
