@@ -2,14 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum AnimalAction { Resting, FindingPrey, Eating, Sleeping, RunAway, Mating, Hunting }
+public enum AnimalAction { Resting, FindingPrey, Eating, Sleeping, RunAway, Mating, Hunting, Dead }
 public enum Diet { Herbivore, Carnivore, Omnivore }
 
 public class Animal : Organisms
 {
-    [SerializeField] protected AnimalAction currentAction;
     [SerializeField] protected Diet diet;
-    [SerializeField]protected GameObject targetPrey;
+    [SerializeField] protected bool sex;
+    [SerializeField] protected float weightCorrection;
+
+    [SerializeField] protected AnimalAction currentAction;
+    [SerializeField] protected GameObject targetPrey;
 
     protected bool isAdult;
     protected bool isPregnent;
@@ -19,8 +22,9 @@ public class Animal : Organisms
     [SerializeField] protected float hunger;
     [SerializeField] protected float sleepiness;
     [SerializeField] protected float lifespan;
-    protected float age;
-    protected float corruptionRate;
+    [SerializeField] protected float age;
+    [SerializeField] protected float corruptionRate;
+
     [SerializeField] protected float detectionRange;
     [SerializeField] protected float moveSpeed;
 
@@ -61,14 +65,29 @@ public class Animal : Organisms
             corruptionRate += deltaTime;
             if(corruptionRate > 100)
             {
-                MyDestroy();
+                GameManager.Instance.ObjectDestroy += MyDestroy;
             }
         }
     }
 
     protected override void MyDestroy()
     {
-        
+        base.MyDestroy();
+        NutritionalLoss(nutrients);
+        Destroy(gameObject);
+    }
+
+    protected void NutritionalLoss(float amount)
+    {
+        RaycastHit2D hit;
+        int layerMask = LayerMask.GetMask("Tile");
+        hit = Physics2D.Raycast(transform.position, Vector2.right, 1, layerMask);
+        if (hit.collider.TryGetComponent(out Tile tile))
+        {
+            tile.nutrient += amount;
+            nutrients -= amount;
+            if (nutrients < 0) Debug.LogWarning($"{gameObject}'s nutrients less than 0!");
+        }
     }
 
     void Aging(float deltaTime)
@@ -95,6 +114,7 @@ public class Animal : Organisms
     void Dead()
     {
         isDead = true;
+        currentAction = AnimalAction.Dead;
         transform.Rotate(new Vector3(0, 0, 90));
     }
 
@@ -102,6 +122,8 @@ public class Animal : Organisms
     {
         hunger += deltaTime;
         sleepiness += deltaTime;
+        if (hunger > 100) { Dead(); return; }
+        if(hunger < 10 && targetPrey != null && inMouthNutrients == 0) { Rest(); return; }
 
         if(targetPrey == null) FindPrey();
         else
@@ -117,6 +139,12 @@ public class Animal : Organisms
                 moveDirection = targetPrey.transform.position - transform.position;
             }
         }
+    }
+
+    protected void Rest()
+    {
+        currentAction = AnimalAction.Resting;
+        moveDirection = Vector2.zero;
     }
 
     protected void FindPrey()
@@ -179,6 +207,7 @@ public class Animal : Organisms
             {
                 curChewTime = 0;
                 digestionQueue.Enqueue(inMouthNutrients);
+                hunger -= inMouthNutrients;
                 inMouthNutrients = 0;
             }
         }
@@ -215,6 +244,8 @@ public class Animal : Organisms
     {
         preferDirection.Normalize();
         transform.position += (Vector3)preferDirection * deltaTime;
+        if (preferDirection == Vector2.zero) NutritionalLoss(deltaTime * 0.01f * weightCorrection);
+        else NutritionalLoss(deltaTime * moveSpeed * moveSpeed * 0.01f * weightCorrection);
     }
 
     private void OnDrawGizmos()

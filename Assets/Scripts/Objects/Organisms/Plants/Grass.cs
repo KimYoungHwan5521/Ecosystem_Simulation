@@ -36,7 +36,6 @@ public class Grass : Organisms
             {
                 Propagate();
             }
-            
         }
     }
 
