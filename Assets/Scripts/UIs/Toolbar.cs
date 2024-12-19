@@ -23,7 +23,7 @@ public class Toolbar : MonoBehaviour
         Camera.main.transform.position += (Vector3)navVector * Camera.main.orthographicSize * 0.2f;
         if (isClicked )
         {
-            Camera.main.transform.position = cameraPosBeforeClick + ((Vector3)clickPos - Input.mousePosition) * 0.02f;
+            Camera.main.transform.position = cameraPosBeforeClick + ((Vector3)clickPos - Input.mousePosition) * 0.02f * 0.2f * Camera.main.orthographicSize;
         }
     }
     public void ToggleShowNutrient() { bShowNutrient = !bShowNutrient; }
@@ -37,7 +37,7 @@ public class Toolbar : MonoBehaviour
 
     void OnScrollWheel(InputValue value)
     {
-        Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize - value.Get<Vector2>().y * 0.01f, 1, 10);
+        Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize - value.Get<Vector2>().y * 0.01f, 1, 30);
     }
 
     void OnClick(InputValue value)

@@ -21,7 +21,7 @@ public class Tile : CustomObject
     {
         if(grass == null && nutrient > 0)
         {
-            grass = Instantiate(Resources.Load<GameObject>("Prefabs/Grass"), transform.position, Quaternion.identity).GetComponent<Grass>();
+            grass = PoolManager.Spawn(ResourceEnum.Prefab.Grass, transform.position).GetComponent<Grass>();
             //grass.transform.SetParent(transform, false);
 
             grass.tile = this;

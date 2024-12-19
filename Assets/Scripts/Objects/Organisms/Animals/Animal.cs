@@ -72,9 +72,8 @@ public class Animal : Organisms
 
     protected override void MyDestroy()
     {
-        base.MyDestroy();
         NutritionalLoss(nutrients);
-        Destroy(gameObject);
+        base.MyDestroy();
     }
 
     protected void NutritionalLoss(float amount)

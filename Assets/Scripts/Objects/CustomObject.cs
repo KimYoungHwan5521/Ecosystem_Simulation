@@ -13,5 +13,6 @@ public class CustomObject : MonoBehaviour
     protected virtual void MyDestroy() 
     {
         GameManager.Instance.ObjectUpdate -= MyUpdate;
+        Destroy(gameObject);
     }
 }
